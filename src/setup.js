@@ -5,29 +5,15 @@
 'use strict';
 
 var React = require('React');
-var {AsyncStorage} = require('react-native');
 var { Provider } = require('react-redux');
 
-import feathers from 'feathers/client'
-import hooks from 'feathers-hooks';
-import socketio from 'feathers-socketio/client'
-import authentication from 'feathers-authentication/client';
-
-// This is required for socket.io-client due to a bug in React Native debugger
-if (window.navigator && Object.keys(window.navigator).length == 0) {
-    window = Object.assign(window, { navigator: { userAgent: 'ReactNative' } });
-}
-
-var io = require('socket.io-client/socket.io');
-
 var configureStore = require('./store/configureStore');
-var {serverURL} = require('./env');
 var App = require('./App');
+var featherApp = require('./featherApp');
 
 function setup(): ReactClass<{}> {
 
     console.disableYellowBox = true;
-
     class Root extends React.Component {
         state: {
             isLoading: boolean;
@@ -40,26 +26,15 @@ function setup(): ReactClass<{}> {
                 isLoading: true,
                 store: configureStore(() => this.setState({ isLoading: false })),
             };
-
-            const options = { transports: ['websocket'], forceNew: true };
-            const socket = io(serverURL, options);
-
-            this.app = feathers()
-                .configure(socketio(socket))
-                .configure(hooks())
-                // Use AsyncStorage to store our login toke
-                .configure(authentication({
-                    storage: AsyncStorage
-                }));
         }
 
         componentDidMount() {
             this.setState({ performingAuth: true });
 
-            this.app.io.on('connect', () => {
+            featherApp.io.on('connect', () => {
                 this.setState({ connected: true });
 
-                this.app.authenticate().then(() => {
+                featherApp.authenticate().then(() => {
                     this.setState({ performingAuth: false });
                     // Actions.main();
                     console.log('Logining');
@@ -67,10 +42,12 @@ function setup(): ReactClass<{}> {
                     this.setState({ performingAuth: false });
                     // console.log('Error Logining');
                     // Actions.launch();
+                    console.log('Error connecting');
                 });
+
             });
 
-            this.app.io.on('disconnect', () => {
+            featherApp.io.on('disconnect', () => {
                 this.setState({ connected: false });
                 console.log('disconnect');
                 // Actions.offline();

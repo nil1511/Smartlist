@@ -8,6 +8,7 @@
 import {applyMiddleware, createStore} from 'redux';
 import thunk from 'redux-thunk';
 var reducers = require('../reducers');
+var promise = require('./promise');
 var createLogger = require('redux-logger');
 import {persistStore, autoRehydrate} from 'redux-persist';
 var {AsyncStorage} = require('react-native');
@@ -20,7 +21,7 @@ var logger = createLogger({
     duration: true,
 });
 
-var createSmartListStore = applyMiddleware(thunk, logger)(createStore);
+var createSmartListStore = applyMiddleware(thunk, promise, logger)(createStore);
 
 function configureStore(onComplete: ?() => void) {
     // TODO(frantic): reconsider usage of redux-persist, maybe add cache breaker

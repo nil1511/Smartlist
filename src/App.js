@@ -6,8 +6,13 @@ import {
     View
 } from 'react-native';
 var { connect } = require('react-redux');
+var { getPlaylist } = require('./actions');
 
 class Smartlist extends Component {
+    componentDidMount() {
+        this.props.getPlaylist();
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -46,8 +51,17 @@ const styles = StyleSheet.create({
 });
 
 function select(store) {
+    console.log('store', store);
     return {
+        playlist: store.playlist
     };
 }
 
-module.exports = connect(select)(Smartlist);
+function actions(dispatch) {
+    return {
+        getPlaylist: () => dispatch(getPlaylist()),
+    };
+}
+
+
+module.exports = connect(select, actions)(Smartlist);
